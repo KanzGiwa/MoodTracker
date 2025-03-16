@@ -17,85 +17,8 @@ class MoodTracker extends StatefulWidget {
   // ignore: library_private_types_in_public_api
   _MoodTrackerState createState() => _MoodTrackerState();
 }
-class SignInPage extends StatefulWidget {
-  final void Function() onSignIn;
 
 
-  const SignInPage({super.key, required this.onSignIn});
-
-
-  @override
-  // ignore: library_private_types_in_public_api
-  _SignInPageState createState() => _SignInPageState();
-}
-
-
-class _SignInPageState extends State<SignInPage> {
-  final TextEditingController _emailController = TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-  String? _errorMessage;
-
-
-  void _signIn() {
-    final email = _emailController.text;
-    final password = _passwordController.text;
-
-
-    // Here you can add authentication logic (Firebase, etc.)
-    if (email == 'test@test.com' && password == 'password') {
-      widget.onSignIn();
-    } else {
-      setState(() {
-        _errorMessage = 'Invalid email or password';
-      });
-    }
-  }
-
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Sign In'),
-        backgroundColor: Colors.blue,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            TextField(
-              controller: _emailController,
-              decoration: const InputDecoration(labelText: 'Email'),
-            ),
-            const SizedBox(height: 10),
-            TextField(
-              controller: _passwordController,
-              decoration: const InputDecoration(labelText: 'Password'),
-              obscureText: true,
-            ),
-            const SizedBox(height: 20),
-            if (_errorMessage != null)
-              Text(
-                _errorMessage!,
-                style: const TextStyle(color: Colors.red),
-              ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: _signIn,
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.blue,
-                foregroundColor: Colors.black,
-              ),
-              child: const Text('Sign In'),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
 class _MoodTrackerState extends State<MoodTracker> {
   final List<Map<String, dynamic>> _weekMoods = [];
   final List<String> _questions = [
@@ -433,17 +356,27 @@ class _ReportsPageState extends State<ReportsPage> {
 
   // Function to generate generic advice based on mood reports
   String _generateAdvice() {
-    // Simple logic for generating advice based on moods
+    int totalEntries = widget.weekMoods.length;
+    if (totalEntries == 0) return 'No mood data available to generate advice.';
+
     int happyCount = widget.weekMoods.where((entry) => entry['mood'] == 'Happy').length;
     int sadCount = widget.weekMoods.where((entry) => entry['mood'] == 'Sad').length;
     int angryCount = widget.weekMoods.where((entry) => entry['mood'] == 'Angry').length;
-    
-    if (happyCount > sadCount && happyCount > angryCount) {
+    int neutralCount = widget.weekMoods.where((entry) => entry['mood'] == 'Neutral').length;
+
+    double happyPercentage = (happyCount / totalEntries) * 100;
+    double sadPercentage = (sadCount / totalEntries) * 100;
+    double angryPercentage = (angryCount / totalEntries) * 100;
+    double neutralPercentage = (neutralCount / totalEntries) * 100;
+
+    if (happyPercentage > 50) {
       return 'Great job maintaining a positive mood! Keep engaging in activities that make you happy.';
-    } else if (sadCount > happyCount && sadCount > angryCount) {
+    } else if (sadPercentage > 50) {
       return 'It seems like you’ve been feeling sad. Consider talking to someone or engaging in a fun activity.';
-    } else if (angryCount > happyCount && angryCount > sadCount) {
+    } else if (angryPercentage > 50) {
       return 'Feeling angry can be tough. Try practicing relaxation techniques like deep breathing or meditation.';
+    } else if (neutralPercentage > 50) {
+      return 'You’ve been feeling neutral most of the time. Try to find activities that can bring more joy to your days.';
     } else {
       return 'You’ve experienced a mix of emotions. It’s normal to feel a range of feelings—be kind to yourself!';
     }
